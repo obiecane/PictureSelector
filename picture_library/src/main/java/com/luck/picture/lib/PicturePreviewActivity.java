@@ -98,12 +98,15 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     private final AtomicBoolean isFull = new AtomicBoolean(false);
 
     /**
-     * 预览界面下方控件出现动画
+     * 预览界面上方控件出现和隐藏动画
      */
-    private TranslateAnimation selectBarLayoutAppearAnimation = new TranslateAnimation(0, 0, 0, 0);
-
     private Animation titleBarUpInAnimation;
     private Animation titleBarUpOutAnimation;
+    /**
+     * 预览界面下方控件出现和隐藏动画
+     */
+    private Animation bottomBarInAnimation;
+    private Animation bottomBarOutAnimation;
 
     /**
      * 分页码
@@ -159,6 +162,24 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
                 mTitleBar.setVisibility(View.INVISIBLE);
                 placeholderView.setVisibility(View.INVISIBLE);
                 originSystemUiVisibility = StatusBarUtil.fullScreen(PicturePreviewActivity.this);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        bottomBarInAnimation = AnimationUtils.loadAnimation(this, R.anim.bottom_bar_in);
+        bottomBarOutAnimation = AnimationUtils.loadAnimation(this, R.anim.bottom_bar_out);
+        bottomBarOutAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                selectBarLayout.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -1292,11 +1313,9 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
 
 
     private int originSystemUiVisibility = -1;
-    private AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1){{
+    private AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1) {{
         setDuration(10000);
     }};
-
-
 
 
     @Override
@@ -1307,7 +1326,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
             // 退出全屏预览
             mTitleBar.startAnimation(titleBarUpInAnimation);
             mTitleBar.setVisibility(View.VISIBLE);
-            selectBarLayout.startAnimation(selectBarLayoutAppearAnimation);
+            selectBarLayout.startAnimation(bottomBarInAnimation);
             selectBarLayout.setVisibility(View.VISIBLE);
             placeholderView.setVisibility(View.VISIBLE);
             // 退出全屏
@@ -1316,9 +1335,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
         } else {
             // 进入全屏预览
             mTitleBar.startAnimation(titleBarUpOutAnimation);
-            selectBarLayout.setVisibility(View.INVISIBLE);
-
-
+            selectBarLayout.startAnimation(bottomBarOutAnimation);
             isFull.set(true);
         }
     }

@@ -108,6 +108,8 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     private Animation bottomBarInAnimation;
     private Animation bottomBarOutAnimation;
 
+    private int originSystemUiVisibility = -1;
+
     /**
      * 分页码
      */
@@ -1312,10 +1314,8 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     }
 
 
-    private int originSystemUiVisibility = -1;
-    private AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1) {{
-        setDuration(10000);
-    }};
+
+
 
 
     @Override

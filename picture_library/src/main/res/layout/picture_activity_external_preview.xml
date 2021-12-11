@@ -5,11 +5,17 @@
     android:background="@color/picture_color_black"
     android:fitsSystemWindows="true">
 
+    <com.luck.picture.lib.widget.PreviewViewPager
+        android:id="@+id/preview_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <RelativeLayout
         android:id="@+id/titleBar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:background="@color/picture_color_grey_3e">
+        android:layout_below="@id/placeholderView"
+        android:background="@color/picture_color_grey">
 
         <ImageButton
             android:id="@+id/left_back"
@@ -48,10 +54,10 @@
             android:src="@drawable/picture_icon_delete" />
     </RelativeLayout>
 
-    <com.luck.picture.lib.widget.PreviewViewPager
-        android:id="@+id/preview_pager"
+    <View
+        android:id="@+id/placeholderView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/titleBar" />
+        android:layout_height="0dp"
+        android:background="@color/picture_color_grey"/>
 
 </RelativeLayout>

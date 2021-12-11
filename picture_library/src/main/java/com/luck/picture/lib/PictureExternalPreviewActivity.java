@@ -15,6 +15,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -32,6 +34,7 @@ import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.config.PictureSelectionConfig;
 import com.luck.picture.lib.dialog.PictureCustomDialog;
 import com.luck.picture.lib.entity.LocalMedia;
+import com.luck.picture.lib.immersive.StatusBarUtil;
 import com.luck.picture.lib.listener.OnImageCompleteCallback;
 import com.luck.picture.lib.permissions.PermissionChecker;
 import com.luck.picture.lib.photoview.PhotoView;
@@ -57,6 +60,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author：luck
@@ -64,6 +68,7 @@ import java.util.List;
  * @描述: 预览图片
  */
 public class PictureExternalPreviewActivity extends PictureBaseActivity implements View.OnClickListener {
+    protected View placeholderView;
     private int mScreenWidth, mScreenHeight;
     private ImageButton ibLeftBack;
     private TextView tvTitle;
@@ -75,6 +80,18 @@ public class PictureExternalPreviewActivity extends PictureBaseActivity implemen
     private String mMimeType;
     private ImageButton ibDelete;
     private View mTitleBar;
+    /**
+     * 当前是否全屏预览
+     */
+    private final AtomicBoolean isFull = new AtomicBoolean(false);
+
+    /**
+     * 预览界面上方控件出现和隐藏动画
+     */
+    private Animation titleBarUpInAnimation;
+    private Animation titleBarUpOutAnimation;
+
+    private int originSystemUiVisibility = -1;
 
     @Override
     public int getResourceId() {
@@ -100,6 +117,28 @@ public class PictureExternalPreviewActivity extends PictureBaseActivity implemen
         ibDelete.setOnClickListener(this);
         ibDelete.setVisibility(PictureSelectionConfig.style != null ? PictureSelectionConfig.style.pictureExternalPreviewGonePreviewDelete
                 ? View.VISIBLE : View.GONE : View.GONE);
+
+        titleBarUpInAnimation = AnimationUtils.loadAnimation(this, R.anim.title_bar_up_in);
+        titleBarUpOutAnimation = AnimationUtils.loadAnimation(this, R.anim.title_bar_up_out);
+        titleBarUpOutAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mTitleBar.setVisibility(View.INVISIBLE);
+                placeholderView.setVisibility(View.INVISIBLE);
+                originSystemUiVisibility = StatusBarUtil.fullScreen(PictureExternalPreviewActivity.this);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
         initViewPageAdapterData();
     }
 

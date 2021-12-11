@@ -99,8 +99,21 @@ public class PictureExternalPreviewActivity extends PictureBaseActivity implemen
     }
 
     @Override
+    public void immersive() {
+        StatusBarUtil.translucent(this);
+    }
+
+    @Override
     protected void initWidgets() {
         super.initWidgets();
+        placeholderView = findViewById(R.id.placeholderView);
+        if (isImmersive()) {
+            ViewGroup.LayoutParams layoutParams = placeholderView.getLayoutParams();
+            layoutParams.height = StatusBarUtil.getStatusBarHeight();
+            placeholderView.setLayoutParams(layoutParams);
+        }
+
+
         mTitleBar = findViewById(R.id.titleBar);
         tvTitle = findViewById(R.id.picture_title);
         ibLeftBack = findViewById(R.id.left_back);
@@ -354,12 +367,10 @@ public class PictureExternalPreviewActivity extends PictureBaseActivity implemen
                 }
             }
             photoView.setOnViewTapListener((view, x, y) -> {
-                finish();
-                exitAnimation();
+                onImageTap();
             });
             longImageView.setOnClickListener(v -> {
-                finish();
-                exitAnimation();
+                onImageTap();
             });
             if (!isHasVideo) {
                 longImageView.setOnLongClickListener(v -> {
@@ -636,6 +647,23 @@ public class PictureExternalPreviewActivity extends PictureBaseActivity implemen
                     ToastUtils.s(getContext(), getString(R.string.picture_jurisdiction));
                 }
             }
+        }
+    }
+
+
+    private void onImageTap() {
+        if (isFull.get()) {
+            // 退出全屏预览
+            mTitleBar.startAnimation(titleBarUpInAnimation);
+            mTitleBar.setVisibility(View.VISIBLE);
+            placeholderView.setVisibility(View.VISIBLE);
+            // 退出全屏
+            this.getWindow().getDecorView().setSystemUiVisibility(originSystemUiVisibility);
+            isFull.set(false);
+        } else {
+            // 进入全屏预览
+            mTitleBar.startAnimation(titleBarUpOutAnimation);
+            isFull.set(true);
         }
     }
 }

@@ -214,7 +214,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
         btnCheck.setVisibility(View.VISIBLE);
 
         ViewGroup.LayoutParams layoutParams = placeholderView.getLayoutParams();
-        layoutParams.height = getStatusBarHeight();
+        layoutParams.height = StatusBarUtil.getStatusBarHeight();
         placeholderView.setLayoutParams(layoutParams);
 
         if (config.isEditorImage) {
@@ -1320,8 +1320,6 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
 
     @Override
     public void onSingleTop() {
-
-
         if (isFull.get()) {
             // 退出全屏预览
             mTitleBar.startAnimation(titleBarUpInAnimation);
@@ -1341,16 +1339,5 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     }
 
 
-    public static int getStatusBarHeight() {
-        return getInternalDimensionSize(Resources.getSystem(), "status_bar_height");
-    }
 
-    private static int getInternalDimensionSize(Resources res, String key) {
-        int result = 0;
-        int resourceId = res.getIdentifier(key, "dimen", "android");
-        if (resourceId > 0) {
-            result = res.getDimensionPixelSize(resourceId);
-        }
-        return result;
-    }
 }

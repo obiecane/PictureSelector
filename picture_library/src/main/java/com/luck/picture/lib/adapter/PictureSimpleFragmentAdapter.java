@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author：luck
@@ -43,7 +44,7 @@ import java.util.List;
 
 public class PictureSimpleFragmentAdapter extends PagerAdapter {
     private final List<LocalMedia> data = new ArrayList<>();
-    private final OnCallBackActivity onBackPressed;
+    private final OnCallBackActivity onCallBack;
     private final PictureSelectionConfig config;
     private final int mScreenWidth, mScreenHeight;
     /**
@@ -70,13 +71,15 @@ public class PictureSimpleFragmentAdapter extends PagerAdapter {
          * Close Activity
          */
         void onActivityBackPressed();
+
+        void onSingleTop();
     }
 
     public PictureSimpleFragmentAdapter(Context context, PictureSelectionConfig config,
-                                        OnCallBackActivity onBackPressed) {
+                                        OnCallBackActivity onCallBack) {
         super();
         this.config = config;
-        this.onBackPressed = onBackPressed;
+        this.onCallBack = onCallBack;
         this.mScreenWidth = ScreenUtils.getScreenWidth(context);
         this.mScreenHeight = ScreenUtils.getScreenHeight(context);
     }
@@ -191,15 +194,16 @@ public class PictureSimpleFragmentAdapter extends PagerAdapter {
         });
         boolean eqLongImg = MediaUtils.isLongImg(media);
         photoView.setVisibility(eqLongImg && !isGif ? View.GONE : View.VISIBLE);
+        // todo 单击图片，全屏预览
         photoView.setOnViewTapListener((view, x, y) -> {
-            if (onBackPressed != null) {
-                onBackPressed.onActivityBackPressed();
+            if (onCallBack != null) {
+                onCallBack.onSingleTop();
             }
         });
         longImg.setVisibility(eqLongImg && !isGif ? View.VISIBLE : View.GONE);
         longImg.setOnClickListener(v -> {
-            if (onBackPressed != null) {
-                onBackPressed.onActivityBackPressed();
+            if (onCallBack != null) {
+                onCallBack.onSingleTop();
             }
         });
 

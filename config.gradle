@@ -5,7 +5,7 @@ ext {
             minSdkVersion                 : 19,
             targetSdkVersion              : 31,
             versionCode                   : 58,
-            versionName                   : "v2.7.3-rc10",
+            versionName                   : "v2.7.4-rc10",
             ucropVersionCode              : 24,
             ucropVersionName              : "2.2.4-non-native",
 

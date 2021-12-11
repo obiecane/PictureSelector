@@ -2,11 +2,13 @@ package com.luck.picture.lib;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -25,6 +27,8 @@ import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.config.PictureSelectionConfig;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.luck.picture.lib.entity.LocalMediaFolder;
+import com.luck.picture.lib.immersive.ImmersiveManage;
+import com.luck.picture.lib.immersive.StatusBarUtil;
 import com.luck.picture.lib.listener.OnQueryDataResultListener;
 import com.luck.picture.lib.manager.UCropManager;
 import com.luck.picture.lib.model.LocalMediaPageLoader;
@@ -45,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author：luck
@@ -54,6 +59,7 @@ import java.util.List;
 public class PicturePreviewActivity extends PictureBaseActivity implements
         View.OnClickListener, PictureSimpleFragmentAdapter.OnCallBackActivity {
     public static final String TAG = PicturePreviewActivity.class.getSimpleName();
+    protected View placeholderView;
     protected ViewGroup mTitleBar;
     protected ImageView pictureLeftBack;
     protected TextView mTvPictureRight, tvMediaNum, tvTitle, mTvPictureOk;
@@ -84,6 +90,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
      * 是否改变已选的数据
      */
     protected boolean isChangeSelectedData;
+    private final AtomicBoolean isFull = new AtomicBoolean(false);
 
     /**
      * 分页码
@@ -98,6 +105,11 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     @Override
     public int getResourceId() {
         return R.layout.picture_preview;
+    }
+
+    @Override
+    public void immersive() {
+        StatusBarUtil.translucent(this);
     }
 
     @Override
@@ -117,6 +129,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     @Override
     protected void initWidgets() {
         super.initWidgets();
+        placeholderView = findViewById(R.id.placeholderView);
         mTitleBar = findViewById(R.id.titleBar);
         screenWidth = ScreenUtils.getScreenWidth(this);
         animation = AnimationUtils.loadAnimation(this, R.anim.picture_anim_modal_in);
@@ -142,6 +155,10 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
 
         check.setVisibility(View.VISIBLE);
         btnCheck.setVisibility(View.VISIBLE);
+
+        ViewGroup.LayoutParams layoutParams = placeholderView.getLayoutParams();
+        layoutParams.height = getStatusBarHeight();
+        placeholderView.setLayoutParams(layoutParams);
 
         if (config.isEditorImage) {
             mPictureEditor.setVisibility(View.VISIBLE);
@@ -796,6 +813,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     @Override
     public void onClick(View view) {
         int id = view.getId();
+        Log.i(TAG, "onClick: " + id);
         if (id == R.id.pictureLeftBack) {
             onBackPressed();
         } else if (id == R.id.picture_tv_ok || id == R.id.tv_media_num) {
@@ -1236,5 +1254,42 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     @Override
     public void onActivityBackPressed() {
         onBackPressed();
+    }
+
+
+    private int originSystemUiVisibility = -1;
+
+    @Override
+    public void onSingleTop() {
+        if (isFull.get()) {
+            // 退出全屏预览
+            mTitleBar.setVisibility(View.VISIBLE);
+            selectBarLayout.setVisibility(View.VISIBLE);
+            placeholderView.setVisibility(View.VISIBLE);
+            // 退出全屏
+            this.getWindow().getDecorView().setSystemUiVisibility(originSystemUiVisibility);
+            isFull.set(false);
+        } else {
+            // 进入全屏预览
+            mTitleBar.setVisibility(View.INVISIBLE);
+            selectBarLayout.setVisibility(View.INVISIBLE);
+            placeholderView.setVisibility(View.INVISIBLE);
+            originSystemUiVisibility = StatusBarUtil.fullScreen(this);
+            isFull.set(true);
+        }
+    }
+
+
+    public static int getStatusBarHeight() {
+        return getInternalDimensionSize(Resources.getSystem(), "status_bar_height");
+    }
+
+    private static int getInternalDimensionSize(Resources res, String key) {
+        int result = 0;
+        int resourceId = res.getIdentifier(key, "dimen", "android");
+        if (resourceId > 0) {
+            result = res.getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 }

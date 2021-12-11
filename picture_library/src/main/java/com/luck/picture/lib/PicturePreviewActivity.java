@@ -11,8 +11,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.TranslateAnimation;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -90,7 +92,18 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
      * 是否改变已选的数据
      */
     protected boolean isChangeSelectedData;
+    /**
+     * 当前是否全屏预览
+     */
     private final AtomicBoolean isFull = new AtomicBoolean(false);
+
+    /**
+     * 预览界面下方控件出现动画
+     */
+    private TranslateAnimation selectBarLayoutAppearAnimation = new TranslateAnimation(0, 0, 0, 0);
+
+    private Animation titleBarUpInAnimation;
+    private Animation titleBarUpOutAnimation;
 
     /**
      * 分页码
@@ -133,6 +146,27 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
         mTitleBar = findViewById(R.id.titleBar);
         screenWidth = ScreenUtils.getScreenWidth(this);
         animation = AnimationUtils.loadAnimation(this, R.anim.picture_anim_modal_in);
+        titleBarUpInAnimation = AnimationUtils.loadAnimation(this, R.anim.title_bar_up_in);
+        titleBarUpOutAnimation = AnimationUtils.loadAnimation(this, R.anim.title_bar_up_out);
+        titleBarUpOutAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mTitleBar.setVisibility(View.INVISIBLE);
+                placeholderView.setVisibility(View.INVISIBLE);
+                originSystemUiVisibility = StatusBarUtil.fullScreen(PicturePreviewActivity.this);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
         pictureLeftBack = findViewById(R.id.pictureLeftBack);
         mTvPictureRight = findViewById(R.id.picture_right);
         mIvArrow = findViewById(R.id.ivArrow);
@@ -201,7 +235,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
                 initViewPageAdapterData(allAlbumList);
                 if (allAlbumList.size() == 0) {
                     if (config.isOnlySandboxDir) {
-                        mLoader.loadOnlyInAppDirectoryAllMedia(new OnQueryDataResultListener<LocalMediaFolder>(){
+                        mLoader.loadOnlyInAppDirectoryAllMedia(new OnQueryDataResultListener<LocalMediaFolder>() {
                             @Override
                             public void onComplete(LocalMediaFolder data) {
                                 initViewPageAdapterData(data != null ? data.getData() : allAlbumList);
@@ -645,7 +679,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
                     fileSize = PictureFileUtils.formatFileSize(media.getSize(), 2);
                     mCbOriginal.setText(getString(R.string.picture_original_image, fileSize));
                 } else {
-                     mCbOriginal.setText(getString(R.string.picture_default_original_image));
+                    mCbOriginal.setText(getString(R.string.picture_default_original_image));
                 }
             }
             if (config.checkNumMode) {
@@ -828,7 +862,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
     protected void onEditorImage() {
         if (adapter.getSize() > 0) {
             LocalMedia image = adapter.getItem(viewPager.getCurrentItem());
-            UCropManager.ofEditorImage(this, image.getPath(), image.getMimeType(),image.getWidth(),image.getHeight());
+            UCropManager.ofEditorImage(this, image.getPath(), image.getMimeType(), image.getWidth(), image.getHeight());
         }
     }
 
@@ -1072,7 +1106,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
             boolean isHasImage = PictureMimeType.isHasImage(mimeType);
             if (config.selectionMode == PictureConfig.SINGLE && isHasImage) {
                 config.originalPath = image.getPath();
-                UCropManager.ofCrop(this, config.originalPath, image.getMimeType(),image.getWidth(),image.getHeight());
+                UCropManager.ofCrop(this, config.originalPath, image.getMimeType(), image.getWidth(), image.getHeight());
             } else {
                 // 是图片和选择压缩并且是多张，调用批量压缩
                 int imageNum = 0;
@@ -1112,7 +1146,7 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
             isCompleteOrSelected = false;
             if (config.selectionMode == PictureConfig.SINGLE) {
                 config.originalPath = image.getPath();
-                UCropManager.ofCrop(this, config.originalPath, image.getMimeType(),image.getWidth(),image.getHeight());
+                UCropManager.ofCrop(this, config.originalPath, image.getMimeType(), image.getWidth(), image.getHeight());
             } else {
                 // 是图片和选择压缩并且是多张，调用批量压缩
                 UCropManager.ofCrop(this, (ArrayList<LocalMedia>) selectData);
@@ -1258,12 +1292,22 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
 
 
     private int originSystemUiVisibility = -1;
+    private AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1){{
+        setDuration(10000);
+    }};
+
+
+
 
     @Override
     public void onSingleTop() {
+
+
         if (isFull.get()) {
             // 退出全屏预览
+            mTitleBar.startAnimation(titleBarUpInAnimation);
             mTitleBar.setVisibility(View.VISIBLE);
+            selectBarLayout.startAnimation(selectBarLayoutAppearAnimation);
             selectBarLayout.setVisibility(View.VISIBLE);
             placeholderView.setVisibility(View.VISIBLE);
             // 退出全屏
@@ -1271,10 +1315,10 @@ public class PicturePreviewActivity extends PictureBaseActivity implements
             isFull.set(false);
         } else {
             // 进入全屏预览
-            mTitleBar.setVisibility(View.INVISIBLE);
+            mTitleBar.startAnimation(titleBarUpOutAnimation);
             selectBarLayout.setVisibility(View.INVISIBLE);
-            placeholderView.setVisibility(View.INVISIBLE);
-            originSystemUiVisibility = StatusBarUtil.fullScreen(this);
+
+
             isFull.set(true);
         }
     }

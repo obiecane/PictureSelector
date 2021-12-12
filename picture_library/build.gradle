@@ -30,7 +30,8 @@ android {
     resourcePrefix 'ucrop_'
 }
 
-apply from: '../publish.gradle'
+//apply from: '../publish.gradle'
+apply from: './localMaven.gradle'
 
 dependencies {
     implementation "androidx.appcompat:appcompat:${cfgs.version_appcompat}"
